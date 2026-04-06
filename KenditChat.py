@@ -5,19 +5,20 @@ import threading
 import speech_recognition as sr
 import os
 import pickle
+import datetime
 from PIL import Image
 from tkinter import Menu
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 
-class KenditChatApp(ctk.CTk):
+class KenditAIApp(ctk.CTk):
     def __init__(self):
         super().__init__()
 
         # --- 1. CONFIGURACIÓN DE LA VENTANA ---
         self.title("🧠 KenditAI - Ultimate Edition")
-        self.geometry("1300x900")
+        self.geometry("1300x950")
         ctk.set_appearance_mode("dark")
 
         # --- 2. ESTADOS Y VARIABLES DE CONTROL ---
@@ -26,7 +27,6 @@ class KenditChatApp(ctk.CTk):
         self.escuchando = False 
         self.abortar_ia = False
         self.google_user = None
-        # Configuración de tu base de datos local
         self.db_string = 'Driver={SQL Server};Server=KENDALLPC;Database=AcademiaDB;Trusted_Connection=yes;'
         self.cache_guest = [] 
         self.guest_id_counter = 0
@@ -36,7 +36,6 @@ class KenditChatApp(ctk.CTk):
         carpeta_icons = os.path.join(ruta_base, "icons")
 
         try:
-            # Cargamos los 3 iconos principales en 24x24 px
             self.icon_mic = ctk.CTkImage(
                 light_image=Image.open(os.path.join(carpeta_icons, "microfono.png")),
                 dark_image=Image.open(os.path.join(carpeta_icons, "microfono.png")),
@@ -51,8 +50,7 @@ class KenditChatApp(ctk.CTk):
                 light_image=Image.open(os.path.join(carpeta_icons, "boton-detener.png")),
                 dark_image=Image.open(os.path.join(carpeta_icons, "boton-detener.png")),
                 size=(24, 24))
-            
-            print("✅ Iconos cargados correctamente desde la carpeta /icons")
+            print("✅ Iconos cargados correctamente.")
         except Exception as e:
             print(f"⚠️ Error al cargar iconos: {e}")
             self.icon_mic = self.icon_send = self.icon_stop = None
@@ -71,7 +69,6 @@ class KenditChatApp(ctk.CTk):
         self.frame_lista_chats = ctk.CTkScrollableFrame(self.sidebar, fg_color="transparent")
         self.frame_lista_chats.pack(fill="both", expand=True, padx=5, pady=5)
 
-        # Botón de sesión y etiqueta de usuario
         self.btn_session = ctk.CTkButton(self.sidebar, text="Iniciar Sesión", font=("Segoe UI", 12), 
                                         fg_color="#1f538d", height=32, command=self.toggle_session)
         self.btn_session.pack(side="bottom", pady=20, padx=20, fill="x")
@@ -82,7 +79,11 @@ class KenditChatApp(ctk.CTk):
         # ÁREA CENTRAL (Chat)
         self.main_container = ctk.CTkFrame(self, fg_color="#1a1a1a", corner_radius=0)
         self.main_container.grid(row=0, column=1, sticky="nsew")
-        self.main_container.grid_rowconfigure(0, weight=1)
+        
+        # Configuración de filas para el contenedor principal (Chat, Input, Footer)
+        self.main_container.grid_rowconfigure(0, weight=1) 
+        self.main_container.grid_rowconfigure(1, weight=0)
+        self.main_container.grid_rowconfigure(2, weight=0) 
         self.main_container.grid_columnconfigure(0, weight=1)
 
         self.chat_view = ctk.CTkScrollableFrame(self.main_container, fg_color="transparent")
@@ -90,17 +91,15 @@ class KenditChatApp(ctk.CTk):
 
         # --- 5. BARRA DE ENTRADA (Input Bar) ---
         self.input_container = ctk.CTkFrame(self.main_container, fg_color="transparent")
-        self.input_container.grid(row=1, column=0, pady=(0, 25), padx=40, sticky="ew")
+        self.input_container.grid(row=1, column=0, pady=(10, 15), padx=40, sticky="ew")
         
         self.input_wrapper = ctk.CTkFrame(self.input_container, corner_radius=25, fg_color="#303135")
         self.input_wrapper.pack(fill="x", expand=True)
         self.input_wrapper.grid_columnconfigure(0, weight=1)
 
-        # Caja de texto
         self.user_input = ctk.CTkTextbox(self.input_wrapper, fg_color="transparent", font=("Segoe UI", 16), wrap="word", height=50)
         self.user_input.grid(row=0, column=0, padx=(20, 5), pady=10, sticky="ew")
         
-        # Botón de Micrófono (Usa el icono de 24px)
         self.btn_mic = ctk.CTkButton(
             self.input_wrapper, 
             image=self.icon_mic, 
@@ -112,7 +111,6 @@ class KenditChatApp(ctk.CTk):
         )
         self.btn_mic.grid(row=0, column=1, padx=2)
 
-        # Botón de Acción (Enviar/Detener)
         self.btn_action = ctk.CTkButton(
             self.input_wrapper, 
             image=self.icon_send, 
@@ -124,14 +122,32 @@ class KenditChatApp(ctk.CTk):
         )
         self.btn_action.grid(row=0, column=2, padx=(2, 15))
 
-        # --- 6. MENÚS Y EVENTOS FINAL ---
+        # --- 6. BRANDING & COPYRIGHT FOOTER ---
+        self.brand_frame = ctk.CTkFrame(self.main_container, fg_color="transparent", height=30)
+        self.brand_frame.grid(row=2, column=0, pady=(0, 10), sticky="ew")
+        
+        anio_actual = datetime.datetime.now().year
+        
+        self.label_copyright = ctk.CTkLabel(
+            self.brand_frame, 
+            text=f"© {anio_actual} KenditAI | Ultimate Edition",
+            font=("Segoe UI", 11),
+            text_color="#555555"
+        )
+        self.label_copyright.pack(side="left", padx=45)
+
+        self.label_author = ctk.CTkLabel(
+            self.brand_frame, 
+            text="Developed by Kendall Jesus Alpizar Rodriguez",
+            font=("Segoe UI Bold", 11),
+            text_color="#1f538d"
+        )
+        self.label_author.pack(side="right", padx=45)
+
+        # --- 7. MENÚS Y EVENTOS FINAL ---
         self.menu_contextual = Menu(self, tearoff=0, bg="#202123", fg="white")
         self.menu_contextual.add_command(label="🗑️ Eliminar Chat", command=self.confirmar_eliminacion)
-        
-        # Vincular la tecla Enter para enviar mensaje
         self.user_input.bind("<Return>", self.manejar_teclado)
-
-        # Verificar si hay una sesión guardada al abrir
         self.verificar_sesion_inicial()
 
     # --- LÓGICA DE VOZ ---
@@ -163,7 +179,6 @@ class KenditChatApp(ctk.CTk):
         self.crear_mensaje("Usuario", txt)
         
         self.esta_pensando = True
-        # Cambio visual al botón detener
         self.btn_action.configure(image=self.icon_stop, text="" if self.icon_stop else "⏹️", fg_color="#b23b3b")
         
         self.current_ia_res = self.crear_mensaje("IA", "...")
@@ -200,7 +215,6 @@ class KenditChatApp(ctk.CTk):
                     chat['mensajes'].append({'emisor': 'IA', 'texto': res_completa})
         finally:
             self.esta_pensando = False
-            # Volver al botón enviar
             self.after(0, lambda: self.btn_action.configure(image=self.icon_send, text="" if self.icon_send else "➤", fg_color="transparent"))
 
     def click_boton_accion(self):
@@ -324,5 +338,5 @@ class KenditChatApp(ctk.CTk):
         return "break"
 
 if __name__ == "__main__":
-    app = KenditChatApp()
+    app = KenditAIApp()
     app.mainloop()
