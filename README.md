@@ -7,7 +7,7 @@
 Before running **KenditAI**, ensure you have the following installed:
 * **Python 3.14.3** (Optimized for the latest release)
 * **Microsoft SQL Server (SSMS):** To host the local database.
-* **Ollama:** To run the `phi3` model locally.
+* **Ollama:** Required to run the local LLM.
 * **Google Cloud Project:** With OAuth 2.0 credentials enabled for Google Auth.
 
 ### 🛠️ Key Features
@@ -26,15 +26,20 @@ Before running **KenditAI**, ensure you have the following installed:
 
 ### ⚙️ Installation & Setup
 
-1. **Clone the repository:**
+1. **Ollama Setup (Local AI):**
+   - Download and install Ollama from ollama.com
+   - Open your terminal and run: ollama run phi3
+   (This will download the required model for KenditAI).
+
+2. **Clone the repository:**
    git clone https://github.com/tu-usuario/KenditAI.git
    cd KenditAI
 
-2. **Create and activate a virtual environment:**
+3. **Create and activate a virtual environment:**
    python -m venv venv
    .\venv\Scripts\activate
 
-3. **Install dependencies:**
+4. **Install dependencies:**
    pip install -r requirements.txt
 
 ---
